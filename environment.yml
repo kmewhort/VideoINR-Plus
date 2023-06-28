@@ -1,0 +1,17 @@
+name: videoinr
+channels:
+  - pytorch
+  - defaults
+dependencies:
+  - python=3.9
+  - pip
+  - pytorch::pytorch=1.8.0
+  - pytorch::torchvision=0.9.0
+  - pytorch::torchaudio=0.8.0
+  - conda-forge::cudatoolkit=11.1  # compatible version with pytorch 1.8.0
+  - pillow
+  - pyyaml
+  - tqdm
+  - pip:
+    - opencv-python
+prefix: C:\Users\mb20472\AppData\Local\anaconda3\envs\videoinr
