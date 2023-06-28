@@ -59,10 +59,10 @@ python setup.py install
 The folder that contains this image sequence should have a structure as follows:
 ```
 data_path
-├── img_1.jpg
-├── img_2.jpg
+├── img_1.png
+├── img_2.png
 ├── ...
-├── img_n.jpg
+├── img_n.png
 ```
 
 3. Using VideoINR for performing space-time super-resolution. You can adjust up-sampling scales by setting different `space_scale` and `time_scale`.
