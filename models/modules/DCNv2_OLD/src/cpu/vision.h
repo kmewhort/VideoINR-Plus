@@ -1,8 +1,8 @@
 #pragma once
 #include <torch/extension.h>
-#include <ATen/div_rtn.h>
+
 at::Tensor
-dcn_v2_cuda_forward(const at::Tensor &input,
+dcn_v2_cpu_forward(const at::Tensor &input,
                     const at::Tensor &weight,
                     const at::Tensor &bias,
                     const at::Tensor &offset,
@@ -18,7 +18,7 @@ dcn_v2_cuda_forward(const at::Tensor &input,
                     const int deformable_group);
 
 std::vector<at::Tensor>
-dcn_v2_cuda_backward(const at::Tensor &input,
+dcn_v2_cpu_backward(const at::Tensor &input,
                      const at::Tensor &weight,
                      const at::Tensor &bias,
                      const at::Tensor &offset,
@@ -32,7 +32,7 @@ dcn_v2_cuda_backward(const at::Tensor &input,
 
 
 std::tuple<at::Tensor, at::Tensor>
-dcn_v2_psroi_pooling_cuda_forward(const at::Tensor &input,
+dcn_v2_psroi_pooling_cpu_forward(const at::Tensor &input,
                                   const at::Tensor &bbox,
                                   const at::Tensor &trans,
                                   const int no_trans,
@@ -45,7 +45,7 @@ dcn_v2_psroi_pooling_cuda_forward(const at::Tensor &input,
                                   const float trans_std);
 
 std::tuple<at::Tensor, at::Tensor>
-dcn_v2_psroi_pooling_cuda_backward(const at::Tensor &out_grad,
+dcn_v2_psroi_pooling_cpu_backward(const at::Tensor &out_grad,
                                    const at::Tensor &input,
                                    const at::Tensor &bbox,
                                    const at::Tensor &trans,
