@@ -159,8 +159,8 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# OTHER
-.DS_Store  # folder viewing options
+# System Files
+.DS_Store
 
 # PROJECT-SPECIFIC
-adobe240/  # video data
+adobe240/
