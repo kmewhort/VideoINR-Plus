@@ -1,6 +1,6 @@
 name: videoinr
 channels:
-  - pytorch
+  - conda-forge
   - defaults
 dependencies:
   - python=3.9
@@ -8,8 +8,8 @@ dependencies:
   - pytorch::pytorch=1.8.0
   - pytorch::torchvision=0.9.0
   - pytorch::torchaudio=0.8.0
-  - conda-forge::cudatoolkit=11.1  # compatible version with pytorch 1.8.0
-  - pillow
+  - cudatoolkit=11.1  # compatible version with pytorch 1.8.0
+  - pillow<9.3
   - pyyaml
   - tqdm
   - pip:
