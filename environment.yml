@@ -1,19 +1,22 @@
 name: videoinr
 channels:
-  - conda-forge
+  - pytorch
+  - nvidia
   - defaults
+  - conda-forge
 dependencies:
   - python
   - pip
   - pytorch::pytorch
   - pytorch::torchvision
   - pytorch::torchaudio
-  - cudatoolkit=11.8  # affects pytorch version
+  - pytorch-cuda=11.8  # affects pytorch version, 11.8 compatible with latest
+  # - cudatoolkit=11.*  # for earlier pytorch versions
   - pyyaml
   - tqdm
   - pillow
-  - ipython
-  - ipykernel
+  - ipython  # optional
+  - ipykernel  # optional
   - pip:
     - opencv-python
 prefix: C:\Users\mb20472\AppData\Local\anaconda3\envs\videoinr
