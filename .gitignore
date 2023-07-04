@@ -159,8 +159,12 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+# VSCode
+.vscode/
+
 # System Files
 .DS_Store
 
 # PROJECT-SPECIFIC
 adobe240/
+output*/
