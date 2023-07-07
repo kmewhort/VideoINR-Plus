@@ -1,4 +1,4 @@
-#!/bin.bash
+#!/bin/bash
 
 video_indir=$1
 downsample_scale=$2
