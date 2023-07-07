@@ -1,14 +1,14 @@
-import os
-import cv2
 import argparse
+import os
+from pdb import set_trace as bp
+
+import cv2
 import numpy as np
+import torch
 from PIL import Image
 from tqdm import tqdm
 
-import torch
 import models.modules.Sakuya_arch as Sakuya_arch
-
-from pdb import set_trace as bp
 from data.util import imresize_np
 
 parser = argparse.ArgumentParser()
@@ -61,27 +61,29 @@ for ind in tqdm(range(len(path_list) - 1)):
     You may skip this step if your input video
     is already of relatively low resolution.
     '''
-    img1 = imresize_np(img1, 1 / 8, True).astype(np.float32) / 255.
-    img2 = imresize_np(img2, 1 / 8, True).astype(np.float32) / 255.
+    #NOTE: check if intended to normalise RGB by 255
+    img1 = imresize_np(img1, 1 / opt.space_scale, True).astype(np.float32) / 255.
+    img2 = imresize_np(img2, 1 / opt.space_scale, True).astype(np.float32) / 255.
 
-    Image.fromarray((np.clip(img1[:, :, [2, 1, 0]], 0, 1) * 255).astype(np.uint8)).save(
-        os.path.join(opt.out_path_lr, path_list[ind].split('/')[-1]))
+    # save LR image1
+    imgLR = Image.fromarray((np.clip(img1[:, :, [2, 1, 0]], 0, 1) * 255).astype(np.uint8))
+    imgLR.save(os.path.join(opt.out_path_lr, path_list[ind].split('/')[-1]))
 
+    # concat imgs
     imgs = np.stack([img1, img2], axis=0)[:, :, :, [2, 1, 0]]
     imgs = torch.from_numpy(np.ascontiguousarray(np.transpose(imgs, (0, 3, 1, 2)))).float()[None].to(device)
 
+    # forward pass through model
     output = single_forward(model, imgs, opt.space_scale, opt.time_scale)
 
-    '''
-    Save results of VideoINR and bicubic up-sampling.
-    '''
+    # Save results of VideoINR and bicubic up-sampling.
     for out_ind in range(len(output)):
 
         img = output[out_ind][0]
         img = Image.fromarray((img.clamp(0., 1.).detach().cpu().permute(1, 2, 0) * 255).numpy().astype(np.uint8))
-        img.save(os.path.join(opt.out_path_ours, '{}.jpg'.format(index)))
+        img.save(os.path.join(opt.out_path_ours, '{}.png'.format(index)))
 
         HH, WW = img1.shape[0] * 4, img1.shape[1] * 4
-        img = Image.fromarray((np.clip(img1[:, :, [2, 1, 0]], 0, 1) * 255).astype(np.uint8)).resize((WW, HH),Image.BICUBIC)
-        img.save(os.path.join(opt.out_path_bicubic, '{}.jpg'.format(index)))
+        imgBC = Image.fromarray((np.clip(img1[:, :, [2, 1, 0]], 0, 1) * 255).astype(np.uint8)).resize((WW, HH),Image.BICUBIC)
+        imgBC.save(os.path.join(opt.out_path_bicubic, '{}.png'.format(index)))
         index += 1
