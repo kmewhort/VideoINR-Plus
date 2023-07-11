@@ -1,41 +1,57 @@
-clear all
+% SYNTHESISED_DATA Artficially reduce quality of video frames.
 
-TrainOginRoot = 'U:\Creative\dataset_REDS\groundtruth\val_sharp';
-OutputRoot = 'U:\Creative\dataset_REDS\Synthetic_LowLightLowResolution\REDS\val';
-mkdir(OutputRoot);
+% i/o directories
+inputDir = 'adobe240/frames8/GOPR9634';
+outputDir = 'output/GOPR9634';
+mkdir(outputDir);
 
-totalSeq = 30;
-intensityGain = rand(1, totalSeq)*0.1 + 0.3;
-intensityOffset = rand(1, totalSeq)*0.03 + 0.035;
-gammaGain = rand(1, totalSeq)*1.5 + 1.8;
-saturationGain = rand(1, totalSeq)*0.2 + 0.6;
-for subroot = 1:totalSeq-1
-    subRootName = fullfile(TrainOginRoot, sprintf('%03d',subroot));
-    subOutRood = fullfile(OutputRoot, sprintf('%03d',subroot));
-    mkdir(subOutRood);
-    imgList = dir(fullfile(subRootName, '*.png'));
-    % read clean image
+nVideos = 30;
+gammaGain = rand(1, nVideos) * 1.5 + 1.8;
+intensityOffset = rand(1, nVideos) * 0.03 + 0.035;
+intensityGain = rand(1, nVideos) * 0.1 + 0.3;
+saturationGain = rand(1, nVideos) * 0.2 + 0.6;
+% loop through each video dir
+for vNum = 1:nVideos - 1
+    vInPath = fullfile(inputDir, sprintf('%03d', vNum));
+    vOutPath = fullfile(outputDir, sprintf('%03d', vNum));
+    mkdir(vOutPath);
+    Degrade_Frames(vOutPath, ...
+                   gammaGain(vNum), ...
+                   intensityOffset(vNum), ...
+                   saturationGain(vNum));
+end
+
+function Degrade_Frames(frame_dir, ...
+                        gamma_gain, ...
+                        intensity_offset, ...
+                        intensity_gain, ...
+                        saturation_gain)
+    imgList = dir(fullfile(frame_dir, '*.png')).name;
     for f = 1:length(imgList)
-        imgHR = im2double(imread(fullfile(imgList(f).folder, imgList(f).name)));
+        % read clean frame
+        imgHR = im2double(imread(fullfile(frame_dir, imgList(f))));
         % resize to lower resolution
-        imgHR = imresize(imgHR, 0.5);
-        synDark =  real(imgHR.^gammaGain(subroot+1));% + 0.050;
-        % adding noise: poisson and guassian
-        a = 1; b = 0.05;
-        noisy = real(synDark + (sqrt(a .* synDark) .* normrnd(0,0.01, size(synDark))) + normrnd(0,b, size(synDark)));
+        imgLR = imresize(imgHR, 0.5);
+        % Gamma transform - WHY?
+        imgGam = real(imgLR.^gamma_gain); % + 0.050;
+        % add noise: poisson and guassian
+        pNoise = sqrt(1 .* imgGam) .* normrnd(0, 0.01, size(imgGam));
+        gNoise = normrnd(0, 0.05, size(imgGam));
+        imgNoisy = real(imgGam + pNoise + gNoise);
+        % normalise noise with the same parameter for whole video sequence
         if f == 1
-            minnoise = min(noisy(:));
-            rangenoise = range(noisy(:));
+            minNoise = min(imgNoisy(:));
+            rangeNoise = range(imgNoisy(:));
         end
-        % normalise with the same parameter for the whole sequence
-        noisy = (noisy - minnoise)/rangenoise;
-        noisy = noisy + intensityOffset(subroot+1);
-        % dim brightness
-        synDark = intensityGain(subroot+1).*noisy;
-        % dim saturation
-        hsvimg = rgb2hsv(synDark);
-        hsvimg(:,:,2) = saturationGain(subroot+1)*hsvimg(:,:,2);
-        synDark = hsv2rgb(hsvimg);
-        imwrite(synDark, fullfile(subOutRood, imgList(f).name));
+        imgNoisy = (imgNoisy - minNoise) / rangeNoise;
+        % offset brightness
+        imgNoisy = imgNoisy + intensity_offset;
+        % dim brightness (linear)
+        imgDark = intensity_gain .* imgNoisy;
+        % desaturate
+        hsvImg = rgb2hsv(imgDark);
+        hsvImg(:, :, 2) = saturation_gain * hsvImg(:, :, 2);
+        imgDark = hsv2rgb(hsvImg);
+        imwrite(imgDark, fullfile(vOutPath, imgList(f)));
     end
 end
