@@ -14,12 +14,10 @@ from data.util import imresize_np
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--space_scale', type=int, default=4, help="upsampling space scale")
+parser.add_argument('--downsample', type=bool, default=False, help="whether to downsample input frames by space_scale")
 parser.add_argument('--time_scale', type=int, default=8, help="upsampling time scale")
 parser.add_argument('--data_path', type=str, required=True, help="data path for testing")
 parser.add_argument('--out_path', type=str, default="./demo_output/", help="output path (with subdirs for BC, LR and VideoINR)")
-# parser.add_argument('--out_path_lr', type=str, default="./output/LR/", help="output path (Low res image)")
-# parser.add_argument('--out_path_bicubic', type=str, default="./output/Bicubic/", help="output path (bicubic upsampling)")
-# parser.add_argument('--out_path_ours', type=str, default="./output/VideoINR/", help="output path (VideoINR)")
 parser.add_argument('--model_path', type=str, default="latest_G.pth", help="model parameter path")
 opt = parser.parse_known_args()[0]
 
@@ -64,19 +62,17 @@ for idx in tqdm(range(len(path_list) - 1)):
     img1 = cv2.imread(imgpath1, cv2.IMREAD_UNCHANGED)
     img2 = cv2.imread(imgpath2, cv2.IMREAD_UNCHANGED)
 
-    '''
-    We apply down-sampling on the original video
-    in order to avoid CUDA out of memory.
-    You may skip this step if your input video
-    is already of relatively low resolution.
-    '''
-    #NOTE: check if intended to normalise RGB by 255
-    img1 = imresize_np(img1, 1 / opt.space_scale, True).astype(np.float32) / 255.
-    img2 = imresize_np(img2, 1 / opt.space_scale, True).astype(np.float32) / 255.
+    if opt.downsample:
+        # We apply down-sampling on the original vide in order to avoid CUDA
+        # out of memory. You may skip this step if your input video is already
+        # of relatively low resolution.
+        #NOTE: check if intended to normalise RGB by 255
+        img1 = imresize_np(img1, 1 / opt.space_scale, True).astype(np.float32) / 255.
+        img2 = imresize_np(img2, 1 / opt.space_scale, True).astype(np.float32) / 255.
 
-    # save LR from img1
-    imgLR = Image.fromarray((np.clip(img1[:, :, [2, 1, 0]], 0, 1) * 255).astype(np.uint8))
-    imgLR.save(path_LR.joinpath(os.path.basename(imgpath1)))
+        # save LR from img1
+        imgLR = Image.fromarray((np.clip(img1[:, :, [2, 1, 0]], 0, 1) * 255).astype(np.uint8))
+        imgLR.save(path_LR.joinpath(os.path.basename(imgpath1)))
 
     # concat imgs
     imgs = np.stack([img1, img2], axis=0)[:, :, :, [2, 1, 0]]
