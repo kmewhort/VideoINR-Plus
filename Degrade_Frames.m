@@ -1,37 +1,57 @@
 function Degrade_Frames(frame_dir, ...
                         output_dir, ...
-                        gamma_gain, ...
+                        scale, ...
+                        gamma, ...
                         intensity_offset, ...
                         intensity_gain, ...
-                        saturation_gain)
+                        saturation)
     % DEGRADE_FRAMES Downsample, add noise and dim frames.
     mkdir(output_dir);
     imgList = {dir(fullfile(frame_dir, '*.png')).name};
     for f = 1:length(imgList)
         % read clean frame
-        imgHR = im2double(imread(fullfile(frame_dir, imgList{f})));
+        img = im2double(imread(fullfile(frame_dir, imgList{f})));
+
         % resize to lower resolution
-        imgLR = imresize(imgHR, 0.5);
+        if ~isequal(scale, [])
+            img = imresize(img, 1 / scale);
+        end
+
         % Gamma transform - WHY?
-        imgGam = real(imgLR.^gamma_gain); % + 0.050;
+        if ~isequal(gamma, [])
+            img = real(img.^gamma); % + 0.050;
+        end
+
         % add noise: poisson and guassian
-        pNoise = sqrt(1 .* imgGam) .* normrnd(0, 0.01, size(imgGam));
-        gNoise = normrnd(0, 0.05, size(imgGam));
-        imgNoisy = real(imgGam + pNoise + gNoise);
+        pNoise = sqrt(1 .* img) .* normrnd(0, 0.01, size(img));
+        gNoise = normrnd(0, 0.05, size(img));
+        img = real(img + pNoise + gNoise);
+
         % normalise noise with the same parameter for whole video sequence
         if f == 1
-            minNoise = min(imgNoisy(:));
-            rangeNoise = range(imgNoisy(:));
+            minNoise = min(img(:));
+            rangeNoise = range(img(:));
         end
-        imgNoisy = (imgNoisy - minNoise) / rangeNoise;
+        img = (img - minNoise) / rangeNoise;
+
         % offset brightness
-        imgNoisy = imgNoisy + intensity_offset;
+        if ~isequal(intensity_offset, [])
+            img = img + intensity_offset;
+        end
+
         % dim brightness (linear)
-        imgDark = intensity_gain .* imgNoisy;
+        if ~isequal(intensity_gain, [])
+            img = intensity_gain .* img;
+        end
+
         % desaturate
-        hsvImg = rgb2hsv(imgDark);
-        hsvImg(:, :, 2) = saturation_gain * hsvImg(:, :, 2);
-        imgDark = hsv2rgb(hsvImg);
-        imwrite(imgDark, fullfile(output_dir, imgList{f}));
+        if ~isequal(saturation, [])
+            hsvImg = rgb2hsv(img);
+            hsvImg(:, :, 2) = saturation * hsvImg(:, :, 2);
+            % convert back to rgb
+            img = hsv2rgb(hsvImg);
+        end
+
+        imwrite(img, fullfile(output_dir, imgList{f}));
     end
 end
