@@ -19,4 +19,5 @@ dependencies:
   - ipykernel  # optional
   - pip:
     - opencv-python
+    - miss_hit  # matlab formatter
 prefix: C:\Users\mb20472\AppData\Local\anaconda3\envs\videoinr
