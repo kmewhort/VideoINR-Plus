@@ -5,10 +5,11 @@ function Degrade_Frames(frame_dir, ...
                         intensity_gain, ...
                         saturation_gain)
     % DEGRADE_FRAMES Downsample, add noise and dim frames.
-    imgList = dir(fullfile(frame_dir, '*.png')).name;
+    mkdir(output_dir);
+    imgList = {dir(fullfile(frame_dir, '*.png')).name};
     for f = 1:length(imgList)
         % read clean frame
-        imgHR = im2double(imread(fullfile(frame_dir, imgList(f))));
+        imgHR = im2double(imread(fullfile(frame_dir, imgList{f})));
         % resize to lower resolution
         imgLR = imresize(imgHR, 0.5);
         % Gamma transform - WHY?
@@ -31,6 +32,6 @@ function Degrade_Frames(frame_dir, ...
         hsvImg = rgb2hsv(imgDark);
         hsvImg(:, :, 2) = saturation_gain * hsvImg(:, :, 2);
         imgDark = hsv2rgb(hsvImg);
-        imwrite(imgDark, fullfile(output_dir, imgList(f)));
+        imwrite(imgDark, fullfile(output_dir, imgList{f}));
     end
 end
