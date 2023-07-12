@@ -17,7 +17,7 @@ function Degrade_Frames(frame_dir, ...
             img = imresize(img, 1 / scale);
         end
 
-        % Gamma transform - WHY?
+        % gamma transform - WHY?
         if ~isequal(gamma, [])
             img = real(img.^gamma); % + 0.050;
         end
@@ -34,7 +34,7 @@ function Degrade_Frames(frame_dir, ...
         end
         img = (img - minNoise) / rangeNoise;
 
-        % offset brightness
+        % offset brightness - WHY?
         if ~isequal(intensity_offset, [])
             img = img + intensity_offset;
         end
