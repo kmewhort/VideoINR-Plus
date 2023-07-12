@@ -1,4 +1,6 @@
 % SYNTHESISED_DATA Artficially reduce quality of video frames.
+%   Original code: Dr Pui Anantrasirichai, 2023 (University of Bristol)
+%   Adapted: Felix Dubicki-Piper, 2023 (UG, University of Bristol)
 
 % i/o directories
 inputDir = 'adobe240/frames8/GOPR9634/original';
