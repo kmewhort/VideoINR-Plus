@@ -619,7 +619,8 @@ def make_coord(shape, ranges=None, flatten=True):
         else:
             v0, v1 = ranges[i]
         r = (v1 - v0) / (2 * n)
-        seq = v0 + r + (2 * r) * torch.arange(n).float()
+        #FIXED: "tensors not on same device" bug
+        seq = v0 + r + (2 * r) * torch.arange(n, device='cuda').float()
         coord_seqs.append(seq)
     ret = torch.stack(torch.meshgrid(*coord_seqs), dim=-1)
     if flatten:
