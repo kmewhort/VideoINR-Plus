@@ -15,11 +15,6 @@ for f = 1:length(imgList)
     % read clean frame
     img = im2double(imread(fullfile(frame_indir, imgList{f})));
 
-    % downsample to lower resolution (scales by length, not area)
-    if ~isequal(scale, [])
-        img = imresize(img, 1 / scale);
-    end
-
     % gamma transform - mimicks lowering camera aperture
     if ~isequal(gamma, [])
         img = real(img.^gamma); % + 0.050;
@@ -39,7 +34,7 @@ for f = 1:length(imgList)
     end
     img = (img - minNoise) / rangeNoise;
 
-    % offset brightness - clips white point 
+    % offset brightness - clips white point
     % - mimicks data loss ie overexposure
     if ~isequal(intensity_offset, [])
         img = img + intensity_offset;
@@ -56,6 +51,11 @@ for f = 1:length(imgList)
         hsvImg(:, :, 2) = saturation * hsvImg(:, :, 2);
         % convert back to rgb
         img = hsv2rgb(hsvImg);
+    end
+
+    % downsample to lower resolution (scales by length, not area)
+    if ~isequal(scale, [])
+        img = imresize(img, 1 / scale);
     end
 
     imwrite(img, fullfile(frame_outdir, imgList{f}));
