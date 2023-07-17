@@ -7,17 +7,18 @@ channels:
 dependencies:
   - python
   - pip
-  - pytorch::pytorch
+  - pytorch::pytorch  # machine learning
   - pytorch::torchvision
   - pytorch::torchaudio
   - pytorch-cuda=11.8  # affects pytorch version, 11.8 compatible with latest
   # - cudatoolkit=11.*  # for earlier pytorch versions
-  - pyyaml
-  - tqdm
-  - pillow
+  - pyyaml  # read yaml config files
+  - tqdm  # loop progress bars
+  - pillow  # image processing
+  - python-lmdb  # database management
   - ipython  # optional
   - ipykernel  # optional
   - pip:
-    - opencv-python
-    - miss_hit  # matlab formatter
+    - opencv-python  # computer vision ai tools
+    - miss_hit  # matlab formatter, optional
 prefix: C:\Users\mb20472\AppData\Local\anaconda3\envs\videoinr
