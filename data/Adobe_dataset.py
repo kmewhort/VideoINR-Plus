@@ -44,8 +44,10 @@ class AdobeDataset(data.Dataset):
         # temporal augmentation
         self.interval_list = opt['interval_list']
         self.random_reverse = opt['random_reverse']
-        logger.info('Temporal augmentation interval list: [{}], with random reverse is {}.'.format(
-            ','.join(str(x) for x in opt['interval_list']), self.random_reverse))
+        logger.info(
+            'Temporal augmentation interval list: [{}], with random reverse is {}.'.format(
+                ','.join(str(x) for x in opt['interval_list']), self.random_reverse)
+        )
         self.half_N_frames = opt['N_frames'] // 2
         self.LR_N_frames = 1 + self.half_N_frames
         assert self.LR_N_frames > 1, 'Error: Not enough LR frames to interpolate'
@@ -62,8 +64,11 @@ class AdobeDataset(data.Dataset):
             self.LR_index_list.append(i*2)
 
         self.GT_root, self.LQ_root = opt['dataroot_GT'], opt['dataroot_LQ']
+        # automatically create LQ frames if GT and LQ roots are equal
+        self.auto_downsample = (self.GT_root == self.LQ_root)
         self.data_type = self.opt['data_type']
-        self.LR_input = False if opt['GT_size'] == opt['LQ_size'] else True  # low resolution inputs
+        # low resolution inputs
+        self.LR_input = False if opt['GT_size'] == opt['LQ_size'] else True
         #### directly load image keys
         if opt['cache_keys']:
             logger.info('Using cache keys: {}'.format(opt['cache_keys']))
@@ -72,7 +77,7 @@ class AdobeDataset(data.Dataset):
             cache_keys = 'Vimeo7_train_keys.pkl'
         logger.info('Using cache keys - {}.'.format(cache_keys))
         self.paths_GT = pickle.load(open('meta_info/{}'.format(cache_keys), 'rb'))
-     
+
         assert self.paths_GT, 'Error: GT path is empty.'
 
         if self.data_type == 'lmdb':
@@ -83,10 +88,10 @@ class AdobeDataset(data.Dataset):
             pass
         else:
             raise ValueError('Wrong data type: {}'.format(self.data_type))
-        
+
         with open('data/adobe240fps_folder_train.txt') as t:
             video_list = t.readlines()
-            
+
         self.file_list = []
         self.gt_list = []
         for video in video_list:
@@ -108,22 +113,33 @@ class AdobeDataset(data.Dataset):
                 index += 1
         print(len(self.file_list))
         print(len(self.gt_list))
-                
-                
+
+
     def _init_lmdb(self):
         # https://github.com/chainer/chainermn/issues/129
-        self.GT_env = lmdb.open(self.opt['dataroot_GT'], readonly=True, lock=False, readahead=False,
-                                meminit=False)
-        self.LQ_env = lmdb.open(self.opt['dataroot_LQ'], readonly=True, lock=False, readahead=False,
-                                meminit=False)
+        self.GT_env = lmdb.open(
+            self.opt['dataroot_GT'],
+            readonly=True,
+            lock=False,
+            readahead=False,
+            meminit=False,
+        )
+        self.LQ_env = lmdb.open(
+            self.opt['dataroot_LQ'],
+            readonly=True,
+            lock=False,
+            readahead=False,
+            meminit=False,
+        )
 
     def _ensure_memcached(self):
         if self.mclient is None:
             # specify the config files
             server_list_config_file = None
             client_config_file = None
-            self.mclient = mc.MemcachedClient.GetInstance(server_list_config_file,
-                                                          client_config_file)
+            self.mclient = mc.MemcachedClient.GetInstance(
+                server_list_config_file, client_config_file
+            )
 
     def _read_img_mc(self, path):
         ''' Return BGR, HWC, [0, 255], uint8'''
@@ -143,15 +159,16 @@ class AdobeDataset(data.Dataset):
         return img
 
     def __getitem__(self, index):
-        
+
         scale = self.opt['scale']
-        # print(scale)
+        #NOTE: auto_s_f == (scale or 1) for self.auto_ds == (True or False)
+        auto_scale_factor = scale ** self.auto_downsample
         N_frames = self.opt['N_frames']
         GT_size = self.opt['GT_size']
         key = self.paths_GT[0]
         name_a, name_b = key.split('_')
 
-        center_frame_idx = random.randint(2,6) # 2<= index <=6
+        center_frame_idx = random.randint(2,6) # 2 <= index <= 6
 
         #### determine the neighbor frames
         interval = random.choice(self.interval_list)
@@ -181,51 +198,60 @@ class AdobeDataset(data.Dataset):
                       center_frame_idx + self.half_N_frames * interval + 1, interval))
             if self.random_reverse and random.random() < 0.5:
                 neighbor_list.reverse()
-        #### get the GT image (as the center frame)
+
+        #### get the GT & LQ images (as the center frame)
+        #### op == original_path; fp == file_path, l == list
         img_GT_l = []
         img_LQop_l = [osp.join(self.LQ_root, fp) for fp in self.file_list[index]]
         img_GTop_l = np.array([osp.join(self.GT_root, fp) for fp in self.gt_list[index]])
-        
+
         gt_sampled_idx = sorted(random.sample(range(len(img_GTop_l)), 1))
         # print(gt_sampled_idx)
         # gt_sampled_idx = [0, 4, 8]
         img_GTop_l = img_GTop_l[gt_sampled_idx]
-        
+
         times = []
         for i in gt_sampled_idx:
             times.append(torch.tensor([i / 8]))
+
+        # read frames
         img_LQ_l = [cv2.imread(fp) for fp in img_LQop_l]
         img_GT_l = [cv2.imread(fp) for fp in img_GTop_l]
-        # print("LQ: ", img_LQo_l, "GT: ", img_GTo_l)
-        width_l, height_l = int(np.floor(img_LQ_l[0].shape[1] / 8)), int(np.floor(img_LQ_l[0].shape[0] / 8))
-        width_g, height_g = int(np.floor(img_LQ_l[0].shape[1] / 2)), int(np.floor(img_LQ_l[0].shape[0] / 2))
+
+        # crop so frames are divisible by scale factor (remove remainder)
+        sf_l, sf_g = (2 * auto_scale_factor, 2)  # LQ, GT scale factors
+        height_l, width_l = sf_l * (np.array(img_LQ_l[0].shape) // sf_l)[0:2]
+        height_g, width_g = sf_g * (np.array(img_LQ_l[0].shape) // sf_g)[0:2]
         if len(img_LQ_l[0].shape) == 3:
-            img_LQ_l = [img_[0:8 * height_l, 0:8 * width_l, :] for img_ in img_LQ_l]
-            img_GT_l = [img_[0:2 * height_g, 0:2 * width_g, :] for img_ in img_GT_l]
+            img_LQ_l = [img_[0:height_l, 0:width_l, :] for img_ in img_LQ_l]
+            img_GT_l = [img_[0:height_g, 0:width_g, :] for img_ in img_GT_l]
         else:
-            img_LQ_l = [img_[0:8 * height_l, 0:8 * width_l] for img_ in img_LQ_l]
-            img_GT_l = [img_[0:2 * height_g, 0:2 * width_g] for img_ in img_GT_l]
+            img_LQ_l = [img_[0:height_l, 0:width_l] for img_ in img_LQ_l]
+            img_GT_l = [img_[0:height_g, 0:width_g] for img_ in img_GT_l]
 
-        img_LQ_l = [imresize_np(img_, 1 / 8, True) for img_ in img_LQ_l]
-        img_GT_l = [imresize_np(img_, 1 / 2, True) for img_ in img_GT_l]
+        # downsample images by half
+        img_LQ_l = [imresize_np(img_, 1 / sf_l, True) for img_ in img_LQ_l]
+        img_GT_l = [imresize_np(img_, 1 / sf_g, True) for img_ in img_GT_l]
 
-        img_LQ_l = [img_.astype(np.float32) / 255. for img_ in img_LQ_l]
-        img_GT_l = [img_.astype(np.float32) / 255. for img_ in img_GT_l]
-            
+        # convert to float RBG
+        img_LQ_l = [img_.astype(np.float32) / 255.0 for img_ in img_LQ_l]
+        img_GT_l = [img_.astype(np.float32) / 255.0 for img_ in img_GT_l]
+
+        # format array dimensions
         if img_LQ_l[0].ndim == 2:
             img_LQ_l = [np.expand_dims(img_, axis=2) for img_ in img_LQ_l]
             img_GT_l = [np.expand_dims(img_, axis=2) for img_ in img_GT_l]
-            
+
         if img_LQ_l[0].shape[2] > 3:
             img_LQ_l = [img_[:, :, :3] for img_ in img_LQ_l]
             img_GT_l = [img_[:, :, :3] for img_ in img_GT_l]
-                
-        # LQ_size_tuple = (3, 64, 112) if self.LR_input else (3, 256, 448)
-        C, H, W = img_LQ_l[0].shape[2], img_LQ_l[0].shape[0], img_LQ_l[0].shape[1]
+
+        H, W, C = img_LQ_l[0].shape[0:3]
         if self.opt['phase'] == 'train':
             # randomly crop
             if self.LR_input:
                 LQ_size = GT_size // scale
+                # random starting corner for crop
                 rnd_h = random.randint(0, max(0, H - LQ_size))
                 rnd_w = random.randint(0, max(0, W - LQ_size))
                 img_LQ_l = [v[rnd_h:rnd_h + LQ_size, rnd_w:rnd_w + LQ_size, :] for v in img_LQ_l]
@@ -242,18 +268,27 @@ class AdobeDataset(data.Dataset):
             rlt = util.augment(img_LQ_l, self.opt['use_flip'], self.opt['use_rot'])
             img_LQ_l = rlt[0:2]
             img_GT_l = rlt[2:]
-            
+
         # stack LQ images to NHWC, N is the frame number
         img_LQs = np.stack(img_LQ_l, axis=0)
         img_GTs = np.stack(img_GT_l, axis=0)
         # BGR to RGB, HWC to CHW, numpy to tensor
         img_GTs = img_GTs[:, :, :, [2, 1, 0]]
         img_LQs = img_LQs[:, :, :, [2, 1, 0]]
-        
-        img_GTs = torch.from_numpy(np.ascontiguousarray(np.transpose(img_GTs, (0, 3, 1, 2)))).float()
-        img_LQs = torch.from_numpy(np.ascontiguousarray(np.transpose(img_LQs,
-                                                                     (0, 3, 1, 2)))).float()
-        return {'LQs': img_LQs, 'GT': img_GTs, 'key': key, 'time': times, 'scale': (img_GTs.shape[-2], img_GTs.shape[-1])}
+
+        img_GTs = torch.from_numpy(
+            np.ascontiguousarray(np.transpose(img_GTs, (0, 3, 1, 2)))
+        ).float()
+        img_LQs = torch.from_numpy(
+            np.ascontiguousarray(np.transpose(img_LQs, (0, 3, 1, 2)))
+        ).float()
+        return {
+            'LQs': img_LQs,
+            'GT': img_GTs,
+            'key': key,
+            'time': times,
+            'scale': (img_GTs.shape[-2], img_GTs.shape[-1])
+        }
 
     def __len__(self):
         return len(self.file_list)
