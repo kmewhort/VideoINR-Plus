@@ -1,9 +1,9 @@
 #### general settings
 name: LunaTokis_scratch_b16p32f5b40n7l1_600k_Vimeo
-use_tb_logger: false #true
+use_tb_logger: false
 model: VideoSR_base
 distortion: sr
-scale: 4  # downsampling factor
+scale: 4  # spatial downsampling factor
 gpu_ids: [0,]  # id of GPUs
 
 #### datasets
@@ -14,8 +14,8 @@ datasets:
     interval_list: [1]
     random_reverse: true #false
     border_mode: false
-    dataroot_GT: adobe240/frames/train  # groundtruth
-    dataroot_LQ: adobe240/frames/train  # low quality
+    dataroot_GT: adobe240/framesGT/train  # groundtruth
+    dataroot_LQ: adobe240/framesLFR8/train  # low quality
     cache_keys: Vimeo7_train_keys.pkl
 
     N_frames: 7  # no. supervision frames

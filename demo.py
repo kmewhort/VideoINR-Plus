@@ -19,7 +19,7 @@ parser.add_argument('--downsample', type=bool, default=False, help="whether to d
 parser.add_argument('--bicubic', type=bool, default=True, help="whether to output bicubic result")
 parser.add_argument('--data_path', type=str, required=True, help="data path for testing")
 parser.add_argument('--out_path', type=str, default="./demo_output/", help="output path (subdirs are created automatically)")
-parser.add_argument('--model_path', type=str, default="latest_G.pth", help="model parameter path")
+parser.add_argument('--model_path', type=str, default="trained_models/VideoINR_Network_G.pth", help="model parameter path")
 opt = parser.parse_known_args()[0]
 
 device = 'cuda'

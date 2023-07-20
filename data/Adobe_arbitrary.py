@@ -1,19 +1,22 @@
 '''
-Vimeo7 dataset
+Adobe240 dataset (arbitrary downsample ratio)
 support reading images from lmdb, image folder and memcached
 '''
-import os
-import sys
-import os.path as osp
-import random
-import pickle
 import logging
-import numpy as np
+import os
+import os.path as osp
+import pickle
+import random
+import sys
+
 import cv2
 import lmdb
+import numpy as np
 import torch
 import torch.utils.data as data
+
 import data.util as util
+
 try:
     import mc  # import memcached
 except ImportError:
@@ -72,7 +75,7 @@ class AdobeDataset(data.Dataset):
             cache_keys = 'Vimeo7_train_keys.pkl'
         logger.info('Using cache keys - {}.'.format(cache_keys))
         self.paths_GT = pickle.load(open('meta_info/{}'.format(cache_keys), 'rb'))
-     
+
         assert self.paths_GT, 'Error: GT path is empty.'
 
         if self.data_type == 'lmdb':
@@ -83,10 +86,10 @@ class AdobeDataset(data.Dataset):
             pass
         else:
             raise ValueError('Wrong data type: {}'.format(self.data_type))
-        
+
         with open('data/adobe240fps_folder_train.txt') as t:
             video_list = t.readlines()
-            
+
         self.file_list = []
         self.gt_list = []
         for video in video_list:
@@ -108,8 +111,8 @@ class AdobeDataset(data.Dataset):
                 index += 1
         print(len(self.file_list))
         print(len(self.gt_list))
-                
-                
+
+
     def _init_lmdb(self):
         # https://github.com/chainer/chainermn/issues/129
         self.GT_env = lmdb.open(self.opt['dataroot_GT'], readonly=True, lock=False, readahead=False,
@@ -143,7 +146,7 @@ class AdobeDataset(data.Dataset):
         return img
 
     def __getitem__(self, index):
-        
+
         scale = self.opt['scale']
         # print(scale)
         N_frames = self.opt['N_frames']
@@ -151,7 +154,7 @@ class AdobeDataset(data.Dataset):
         key = self.paths_GT[0]
         name_a, name_b = key.split('_')
 
-        center_frame_idx = random.randint(2,6) # 2<= index <=6
+        center_frame_idx = random.randint(2,6) # 2 <= index <= 6
 
         #### determine the neighbor frames
         interval = random.choice(self.interval_list)
@@ -185,17 +188,17 @@ class AdobeDataset(data.Dataset):
         img_GT_l = []
         img_LQop_l = [osp.join(self.GT_root, fp) for fp in self.file_list[index]]
         img_GTop_l = np.array([osp.join(self.GT_root, fp) for fp in self.gt_list[index]])
-        
+
         gt_sampled_idx = sorted(random.sample(range(len(img_GTop_l)), 3))
         # gt_sampled_idx = [0, 4, 8]
         img_GTop_l = img_GTop_l[gt_sampled_idx]
-        
+
         times = []
         for i in gt_sampled_idx:
             times.append(torch.tensor([i / 8]))
         img_LQo_l = [cv2.imread(fp) for fp in img_LQop_l]
         img_GTo_l = [cv2.imread(fp) for fp in img_GTop_l]
-        
+
         if img_LQo_l[0] is None:
             print([osp.join(self.GT_root, fp) for fp in self.file_list[index]])
             print([osp.join(self.GT_root, fp) for fp in self.gt_list[index]])

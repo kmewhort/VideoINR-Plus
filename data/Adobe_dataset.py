@@ -1,19 +1,22 @@
 '''
-Vimeo7 dataset
+Adobe240 dataset (constant downsample ratio)
 support reading images from lmdb, image folder and memcached
 '''
-import os
-import sys
-import os.path as osp
-import random
-import pickle
 import logging
-import numpy as np
+import os
+import os.path as osp
+import pickle
+import random
+import sys
+
 import cv2
 import lmdb
+import numpy as np
 import torch
 import torch.utils.data as data
+
 import data.util as util
+
 try:
     import mc  # import memcached
 except ImportError:
