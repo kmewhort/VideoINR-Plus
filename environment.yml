@@ -7,6 +7,7 @@ channels:
 dependencies:
   - python
   - pip
+  - ninja # fast build times (for DCNv2 install)
   - pytorch::pytorch # machine learning
   - pytorch::torchvision
   - pytorch::torchaudio
@@ -23,6 +24,7 @@ dependencies:
   - pip:
       - opencv-python # computer vision ai tools
       - miss_hit # optional, matlab formatter
+      - ./models/modules/DCNv2 # auto-install local DCNv2 module
 prefix: ~\AppData\Local\anaconda3\envs\videoinr
 # NOTE
 # - Must have CUDA GPUs with latest compatible drivers installed
