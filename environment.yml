@@ -6,14 +6,14 @@ channels:
   - conda-forge
 dependencies:
   - python
-  - pip
+  - pip # for pip dependencies
   - ninja # fast build times (for DCNv2 install)
   - pytorch::pytorch # machine learning
   - pytorch::torchvision
   - pytorch::torchaudio
   - pytorch-cuda=11.8 # affects pytorch version, 11.8 for latest
-  - cuda-nvcc=11.8 # cuda compiler for DCNv2, must be same v. as pytorch-cuda
-  # - cudatoolkit=11.*  # earlier pytorch versions only
+  - cuda-nvcc=11.8 # compiler for DCNv2, must be same v. as pytorch-cuda
+  - gxx # Uncomment for Linux ONLY
   - pyyaml # read yaml config files
   - tqdm # loop progress bars
   - pillow # image processing
@@ -27,7 +27,7 @@ dependencies:
       - ./models/modules/DCNv2 # auto-install local DCNv2 module
 prefix: ~\AppData\Local\anaconda3\envs\videoinr
 # NOTE
-# - Must have CUDA GPUs with latest compatible drivers installed
-# - DO NOT need to install CUDA toolkit from web, conda is sufficient
-# - Windows: must install MSV c++ redist & VS build tools on system (2019 for CUDA 11.8)
-# - Linux: must install gcc & g++ on system
+# - Must have CUDA-compatible GPUs with latest drivers installed
+# - NO NEED to install CUDA toolkit on system, this environment is sufficient
+# - Windows: MUST install MSVC on system (VS 2017-2022 for CUDA 11.8)
+# - Linux: MUST install gcc & g++ on system (or use 'gxx' dependency above)
