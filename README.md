@@ -46,7 +46,6 @@ The code is tested in:
 - Pytorch 2.0.1 (latest)
 - torchvision 0.15.2
 - pytorch-cuda 11.8
-- cuda-nvcc 11.8
 - [Deformable Convolution v2](https://arxiv.org/abs/1811.11168). Following
   [Zooming Slowmo](https://github.com/Mukosame/Zooming-Slow-Mo-CVPR-2020),
   we adopt [CharlesShang's DCNv2](https://github.com/CharlesShang/DCNv2)
@@ -71,9 +70,8 @@ DCNv2.
   sufficient.
 - **Windows**: Must install MSVC on system
   (VS Build Tools 2017-2022 for CUDA 11.8).
-- **Linux**: Must install gcc & g++ on system
-  (or just uncomment gxx dependency in environment.yml).
-
+  Must also install nvcc (uncomment cuda-nvcc dependency in environment.yml).
+- **Linux**: Must install gcc & g++ (uncomment gxx dependency in environment.yml).
 
 For an optimal installation please [update conda and install and set the new
 dependency solver libmamba](https://www.anaconda.com/blog/a-faster-conda-for-a-growing-community).
