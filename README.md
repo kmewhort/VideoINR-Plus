@@ -64,6 +64,17 @@ conda activate videoinr
 This will install all conda and pip dependencies, including the local module
 DCNv2.
 
+### Note
+
+- Must have CUDA-compatible GPUs with latest drivers installed.
+- **No need** to install CUDA toolkit on system, packages in environment.yml are
+  sufficient.
+- **Windows**: Must install MSVC on system
+  (VS Build Tools 2017-2022 for CUDA 11.8).
+- **Linux**: Must install gcc & g++ on system
+  (or just uncomment gxx dependency in environment.yml).
+
+
 For an optimal installation please [update conda and install and set the new
 dependency solver libmamba](https://www.anaconda.com/blog/a-faster-conda-for-a-growing-community).
 
