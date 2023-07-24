@@ -92,27 +92,39 @@ class AdobeDataset(data.Dataset):
         else:
             raise ValueError('Wrong data type: {}'.format(self.data_type))
 
+        # list of names of train videos
         with open('data/adobe240fps_folder_train.txt') as t:
             video_list = t.readlines()
 
-        self.file_list = []
-        self.gt_list = []
+        # list of filepath tuples
+        self.file_list = []  # each tuple contains 2 input frames
+        self.gt_list = []  # each tuple contains all 9 consective frames
         for video in video_list:
             if video[-1] == '\n':
-                video = video[:-1]
-            index = 0
-            interval = 7
+                video = video[:-1]  # strip new line character
+            # frame path list for GT
             frames = (os.listdir(os.path.join(self.GT_root , video)))
+            # strip .png ending, and sort numerically
             frames = sorted([int(frame[:-4]) for frame in frames])
+            # rebuild frame filename list, now in order
             frames = [str(frame) + '.png' for frame in frames]
-            while index + interval * 1 + 1 < len(frames):
-                videoInputs_index = [index, index + 1 + interval]
+            index = 0  # loop start index
+            interval = 7  # no. GT frames between input frames
+            while index + interval + 1 < len(frames):
+                index_end = index + interval + 1  # for end input frame
+
+                # get filepaths for frames i and i+8 (the 2 input frames)
+                videoInputs_index = [index, index_end]
                 videoInputs = [frames[i] for i in videoInputs_index]
-                video_all_gt = [frames[i] for i in range(index, index + 2 + interval * 1)]
                 videoInputs = [os.path.join(video, f) for f in videoInputs]
-                videoGts = [os.path.join(video, f) for f in video_all_gt]
                 self.file_list.append(videoInputs)
+
+                # get filepaths for all frames i to i+8 (the 9 GT frames)
+                videoGTs_index = range(index, index_end + 1)
+                videoGts = [frames[i] for i in videoGTs_index]
+                videoGts = [os.path.join(video, f) for f in videoGts]
                 self.gt_list.append(videoGts)
+
                 index += 1
         print(len(self.file_list))
         print(len(self.gt_list))
@@ -171,9 +183,10 @@ class AdobeDataset(data.Dataset):
         key = self.paths_GT[0]
         name_a, name_b = key.split('_')
 
-        center_frame_idx = random.randint(2,6) # 2 <= index <= 6
+        center_frame_idx = random.randint(2, 6) # 2 <= index <= 6
 
         #### determine the neighbor frames
+        #NOTE: looks like this code block is not used for anything
         interval = random.choice(self.interval_list)
         if self.opt['border_mode']:
             direction = 1  # 1: forward; 0: backward
@@ -192,8 +205,8 @@ class AdobeDataset(data.Dataset):
                     range(center_frame_idx, center_frame_idx - interval * N_frames, -interval))
         else:
             # ensure not exceeding the borders
-            while (center_frame_idx + self.half_N_frames * interval >
-                   7) or (center_frame_idx - self.half_N_frames * interval < 1):
+            while (center_frame_idx + self.half_N_frames * interval > 7) \
+                or (center_frame_idx - self.half_N_frames * interval < 1):
                 center_frame_idx = random.randint(2, 6)
             # get the neighbor list
             neighbor_list = list(
