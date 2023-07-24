@@ -17,6 +17,7 @@ for i in 0 1 2; do
     while IFS=$' \t\n\r' read -r vname; do
         outdir="adobe240/framesLQ_800/${subdir[i]}/$vname" # for LFR+noisy
         if [ ! -e "$outdir" ]; then
+            echo $'\n\n'"STARTED video $vname"$'\n'
             inpath=$(find adobe240/original_videos/"$vname".*) # video input
             tmpdir=$(mktemp -d -p .)                           # for LFR
 
@@ -24,10 +25,13 @@ for i in 0 1 2; do
             ./video2frame.sh "$inpath" "$FR_scale" "$max_frames_in" "$tmpdir"
 
             # make noisy from temp, save to out
+            echo "Exporting frames to $outdir using MATLAB..."
             scale=4 # res downscale
             matlab -batch "Degrade_Frames('$tmpdir', '$outdir', $scale, [], [], [], [])"
 
             rm -r "$tmpdir" # remove tmp dir
+
+            echo $'\n'FINISHED$'\n\n'
         fi
     done <"${vidlist[i]}"
 done

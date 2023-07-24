@@ -17,11 +17,13 @@ for i in 0 1 2; do
     while IFS=$' \t\n\r' read -r vname; do
         outdir="adobe240/framesGT_800/${subdir[i]}/$vname" # frame output
         if [ ! -e "$outdir" ]; then
+            echo $'\n\n'"STARTED video $vname"$'\n'
             inpath=$(find adobe240/original_videos/"$vname".*) # video input
             mkdir -p "$outdir"
 
             # save frames
             ./video2frame.sh "$inpath" "$FR_scale" "$max_frames_in" "$outdir"
+            echo $'\n'FINISHED$'\n\n'
         fi
     done <"${vidlist[i]}"
 done
