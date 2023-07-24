@@ -1,14 +1,23 @@
 #!/bin/bash
 
-video_indir=$1
+# video file path
+videopath=$1
+# frame rate reduction
 downsample_scale=$2
-# specify only parent dir, not file pattern itself
-frame_outdir=$3
+# max no. of input frames to read
+max_frames_in=$3
+# output folder dir
+framedir=$4
 
 # create outdir if does not exist
-if [ ! -e $frame_outdir ]
-then
-    mkdir $frame_outdir
+if [ ! -e "$framedir" ]; then
+    mkdir "$framedir"
 fi
 
-ffmpeg -i $video_indir -vf select='not(mod(n\,'$downsample_scale'))' -vsync vfr "${frame_outdir}%d.png"
+echo max frames is "$max_frames_in"
+
+# note ffmpeg start counting input frames from 0, but ouput name starts from 1
+ffmpeg -i "$videopath" \
+    -vf select='not(mod(n\,'"$downsample_scale"'))*lte(n\,'"$max_frames_in"')' \
+    -vsync drop \
+    -start_number 0 "${framedir}/%04d.png"
