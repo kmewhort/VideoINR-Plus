@@ -14,8 +14,6 @@ if [ ! -e "$framedir" ]; then
     mkdir "$framedir"
 fi
 
-echo max frames is "$max_frames_in"
-
 # note ffmpeg start counting input frames from 0, but ouput name starts from 1
 ffmpeg -i "$videopath" \
     -vf select='not(mod(n\,'"$downsample_scale"'))*lte(n\,'"$max_frames_in"')' \
