@@ -3,64 +3,64 @@ name: LunaTokis_scratch_b16p32f5b40n7l1_600k_Vimeo
 use_tb_logger: false
 model: VideoSR_base
 distortion: sr
-scale: 4  # spatial downsampling factor
-gpu_ids: [0,]  # id of GPUs
+scale: 4 # spatial downsampling factor
+gpu_ids: [0] # id of GPUs
 
 #### datasets
 datasets:
   train:
     name: Adobe
     mode: Adobe # Adobe & Adobe_a
-    interval_list: [1]
-    random_reverse: true #false
-    border_mode: false
-    dataroot_GT: adobe240/framesGT/train  # groundtruth
-    dataroot_LQ: adobe240/framesLFR8/train  # low quality
-    cache_keys: Vimeo7_train_keys.pkl
+    interval_list: [1] # UNUSED IN VIDEOINR
+    random_reverse: true # UNUSED IN VIDEOINR
+    border_mode: false # UNUSED IN VIDEOINR
+    dataroot_GT: adobe240/framesGT_800/train # groundtruth
+    dataroot_LQ: adobe240/framesLQ_800/train # low quality
+    cache_keys: Vimeo7_train_keys.pkl # UNUSED IN VIDEOINR
 
-    N_frames: 7  # no. supervision frames
+    N_frames: 7 # no. supervision frames
     use_shuffle: true
-    n_workers: 3  # per GPU
-    batch_size: 24  # SGD batch size
-    GT_size: 128  # cropped image patch size (GT)
-    LQ_size: 32  # cropped image patch size (LQ)
-    use_flip: true  # flip training images
-    use_rot: true  # rotate training images
-    color: RGB
+    n_workers: 3 # per GPU
+    batch_size: 24 # SGD batch size
+    GT_size: 128 # cropped image patch size (GT)
+    LQ_size: 32 # cropped image patch size (LQ)
+    use_flip: true # flip training images
+    use_rot: true # rotate training images
+    color: RGB # color format
 
 #### generator-network structures
 network_G:
   which_model_G: LIIF # LunaTokis & LIIF
-  nf: 64  # no. features extracted from each input pixel
-  nframes: 7  # no. supervision frames (ie interpolated trarget frames)
-  groups: 8  # no deformable groups (for DCN)
-  front_RBs: 5  # k1, front residual blocks
-  mid_RBs: 0  # mid resisua blocks
-  back_RBs: 40  # k2, back residual blocks
+  nf: 64 # no. features extracted from each input pixel
+  nframes: 7 # no. supervision frames (ie interpolated trarget frames)
+  groups: 8 # no deformable groups (for DCN)
+  front_RBs: 5 # k1, front residual blocks
+  mid_RBs: 0 # mid resisual blocks
+  back_RBs: 40 # k2, back residual blocks
   HR_in: false
 
 #### path
 path:
-  pretrain_model_G: ~  # pretained generator model
-  strict_load: false #true #
+  pretrain_model_G: ~ # pretained generator model
+  strict_load: false #true
   resume_state: ~
   models: /saved_checkpoints/
   training_state: /saved_checkpoints/
 
 #### training settings: learning rate scheme, loss
 train:
-  lr_G: !!float 1e-4  # max learning rate
-  lr_scheme: CosineAnnealingLR_Restart  # learning rate scheme
-  beta1: 0.9  # adam optimizer param 1
-  beta2: 0.99  # adam optimizer param 2
-  niter: 600000  # total iterations
+  lr_G: !!float 1e-4 # max learning rate
+  lr_scheme: CosineAnnealingLR_Restart # learning rate scheme
+  beta1: 0.9 # adam optimizer param 1
+  beta2: 0.99 # adam optimizer param 2
+  niter: 600000 # total iterations
   warmup_iter: -1 #4000  # -1: no warm up
-  T_period: [150000, 150000, 150000, 150000]  # annealing time periods
-  restarts: [150000, 300000, 450000]  # restart annealing at lr_G
+  T_period: [150000, 150000, 150000, 150000] # annealing time periods
+  restarts: [150000, 300000, 450000] # restart annealing at lr_G
   restart_weights: [1, 1, 1]
-  eta_min: !!float 1e-7  # min learning rate
+  eta_min: !!float 1e-7 # min learning rate
 
-  pixel_criterion: cb  # charbonnier loss
+  pixel_criterion: cb # charbonnier loss
   pixel_weight: 1.0
   val_freq: !!float 5e3
 

@@ -9,8 +9,8 @@ from pathlib import Path
 from pdb import set_trace as bp
 
 # CONFIG - A hardcoded path here as an example
-videoFolder = Path(r'adobe240\original_high_fps_videos')
-frameFolder = Path(r'adobe240\frame')
+videoFolder = Path(r'adobe240\original_videos')
+frameFolder = Path(r'adobe240\framesGT')
 
 train_txt = Path(r'data\adobe240fps_folder_train.txt')
 valid_txt = Path(r'data\adobe240fps_folder_valid.txt')
@@ -53,7 +53,7 @@ for i, mov_path in enumerate(mov_files):
         mov_folder = frameFolder.joinpath('train')
     else:
         print(f"File not on any list: {mov_path}")
-    
+
     image_index = 0
     video = cv2.VideoCapture(str(mov_path))
     success, frame = video.read()
