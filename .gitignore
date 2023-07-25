@@ -167,7 +167,8 @@ cython_debug/
 
 # PROJECT-SPECIFIC
 adobe240/
-output*/
-*.png 
+output/
+*.png
 *.jpg
 *.mp4
+---*
