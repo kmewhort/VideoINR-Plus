@@ -5,15 +5,15 @@ channels:
   - defaults
   - conda-forge
 dependencies:
-  - python
+  - python=3.11
   - pip # for pip dependencies
   - ninja # fast build times (for DCNv2 install)
-  - pytorch::pytorch # machine learning
-  - pytorch::torchvision
-  - pytorch::torchaudio
+  - pytorch::pytorch=2.0.1 # machine learning
+  - pytorch::torchvision=0.15.2
   - pytorch-cuda=11.8 # affects pytorch version, 11.8 for latest
+  # - cudatoolkit=11.8 # UNCOMMENT if having issues with CUDA
   # - cuda-nvcc=11.8 # UNCOMMENT FOR Windows ONLY; compiler
-  - gxx # UNCOMMENT FOR Linux ONLY; compiler
+  - gxx=11.8 # UNCOMMENT FOR Linux ONLY; compiler
   - pyyaml # read yaml config files
   - tqdm # loop progress bars
   - pillow # image processing
@@ -23,7 +23,7 @@ dependencies:
   - ipykernel # optional
   - pip:
       - opencv-python # computer vision ai tools
-      - miss_hit # optional, matlab formatter
+      # - miss_hit # optional, matlab formatter
       - ./models/modules/DCNv2 # auto-install local DCNv2 module
 
 # NOTE
