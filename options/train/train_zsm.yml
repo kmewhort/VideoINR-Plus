@@ -4,7 +4,7 @@ use_tb_logger: false
 model: VideoSR_base
 distortion: sr
 scale: 4 # spatial downsampling factor
-gpu_ids: [0] # id of GPUs
+gpu_ids: [0] # id of GPUs - can find via nvidia-smi
 
 #### datasets
 datasets:
@@ -14,8 +14,8 @@ datasets:
     interval_list: [1] # UNUSED IN VIDEOINR
     random_reverse: true # UNUSED IN VIDEOINR
     border_mode: false # UNUSED IN VIDEOINR
-    dataroot_GT: adobe240/framesGT_800/train # groundtruth
-    dataroot_LQ: adobe240/framesLQ_800/train # low quality
+    dataroot_GT: video_processing/adobe240/framesGT_800/train # groundtruth
+    dataroot_LQ: video_processing/adobe240/framesLQ_800/train # low quality
     cache_keys: Vimeo7_train_keys.pkl # UNUSED IN VIDEOINR
 
     N_frames: 7 # no. supervision frames
@@ -44,8 +44,8 @@ path:
   pretrain_model_G: ~ # pretained generator model
   strict_load: false #true
   resume_state: ~
-  models: /saved_checkpoints/
-  training_state: /saved_checkpoints/
+  models: saved_checkpoints/
+  training_state: saved_checkpoints/
 
 #### training settings: learning rate scheme, loss
 train:
