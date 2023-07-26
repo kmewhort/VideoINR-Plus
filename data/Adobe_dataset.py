@@ -8,6 +8,7 @@ import os.path as osp
 import pickle
 import random
 import sys
+from pathlib import Path
 
 import cv2
 import lmdb
@@ -62,9 +63,9 @@ class AdobeDataset(data.Dataset):
         5 | 0,2,4
         7 | 0,2,4,6
         '''
-        self.LR_index_list = []
+        self.LR_idx_list = []
         for i in range(self.LR_N_frames):
-            self.LR_index_list.append(i*2)
+            self.LR_idx_list.append(i*2)
 
         self.GT_root, self.LQ_root = opt['dataroot_GT'], opt['dataroot_LQ']
         # automatically create LQ frames if GT and LQ roots are equal
@@ -94,39 +95,31 @@ class AdobeDataset(data.Dataset):
 
         # list of names of train videos
         with open('data/adobe240fps_folder_train.txt') as t:
-            video_list = t.readlines()
+            video_list = t.read().splitlines() # '\n' stripped automatically
 
         # list of filepath tuples
-        self.file_list = []  # each tuple contains 2 input frames
+        self.lq_list = []  # each tuple contains 2 input frames
         self.gt_list = []  # each tuple contains all 9 consective frames
+        interval = 8  # distance between input frames
         for video in video_list:
-            if video[-1] == '\n':
-                video = video[:-1]  # strip new line character
-            # frame path list for GT
-            frames = (os.listdir(os.path.join(self.GT_root , video)))
-            # strip .png ending, and sort numerically
-            frames = sorted([int(frame[:-4]) for frame in frames])
-            # rebuild frame filename list, now in order
-            frames = [str(frame) + '.png' for frame in frames]
-            index = 0  # loop start index
-            interval = 7  # no. GT frames between input frames
-            while index + interval + 1 < len(frames):
-                index_end = index + interval + 1  # for end input frame
+            # frame filename list for GT (should be identical to LQ)
+            frame_dir = Path(self.GT_root, video)
+            # get filenames with video dir, eg 'IMG_0000/0000.png'
+            frames = [Path(video, f.name) for f in frame_dir.iterdir()]
+            for idx in range(len(frames) - interval):
+                idx_end = idx + interval  # for end input frame
 
                 # get filepaths for frames i and i+8 (the 2 input frames)
-                videoInputs_index = [index, index_end]
-                videoInputs = [frames[i] for i in videoInputs_index]
-                videoInputs = [os.path.join(video, f) for f in videoInputs]
-                self.file_list.append(videoInputs)
+                inputs_idx = [idx, idx_end]
+                inputsLQ = [Path(self.LQ_root, frames[i]) for i in inputs_idx]
+                self.lq_list.append(inputsLQ)
 
                 # get filepaths for all frames i to i+8 (the 9 GT frames)
-                videoGTs_index = range(index, index_end + 1)
-                videoGts = [frames[i] for i in videoGTs_index]
-                videoGts = [os.path.join(video, f) for f in videoGts]
-                self.gt_list.append(videoGts)
+                frames_idx = range(idx, idx_end + 1)
+                framesGT = [Path(self.GT_root, frames[i]) for i in frames_idx]
+                self.gt_list.append(framesGT)
 
-                index += 1
-        print(len(self.file_list))
+        print(len(self.lq_list))
         print(len(self.gt_list))
 
 
@@ -173,53 +166,17 @@ class AdobeDataset(data.Dataset):
         img = cv2.merge((img_B, img_G, img_R))
         return img
 
-    def __getitem__(self, index):
-
+    def __getitem__(self, idx):
         scale = self.opt['scale']
         #NOTE: auto_s_f == (scale or 1) for self.auto_ds == (True or False)
         auto_scale_factor = scale ** self.auto_downsample
-        N_frames = self.opt['N_frames']
         GT_size = self.opt['GT_size']
         key = self.paths_GT[0]
-        name_a, name_b = key.split('_')
-
-        center_frame_idx = random.randint(2, 6) # 2 <= index <= 6
-
-        #### determine the neighbor frames
-        #NOTE: looks like this code block is not used for anything
-        interval = random.choice(self.interval_list)
-        if self.opt['border_mode']:
-            direction = 1  # 1: forward; 0: backward
-            if self.random_reverse and random.random() < 0.5:
-                direction = random.choice([0, 1])
-            if center_frame_idx + interval * (N_frames - 1) > 7:
-                direction = 0
-            elif center_frame_idx - interval * (N_frames - 1) < 1:
-                direction = 1
-            # get the neighbor list
-            if direction == 1:
-                neighbor_list = list(
-                    range(center_frame_idx, center_frame_idx + interval * N_frames, interval))
-            else:
-                neighbor_list = list(
-                    range(center_frame_idx, center_frame_idx - interval * N_frames, -interval))
-        else:
-            # ensure not exceeding the borders
-            while (center_frame_idx + self.half_N_frames * interval > 7) \
-                or (center_frame_idx - self.half_N_frames * interval < 1):
-                center_frame_idx = random.randint(2, 6)
-            # get the neighbor list
-            neighbor_list = list(
-                range(center_frame_idx - self.half_N_frames * interval,
-                      center_frame_idx + self.half_N_frames * interval + 1, interval))
-            if self.random_reverse and random.random() < 0.5:
-                neighbor_list.reverse()
 
         #### get the GT & LQ images (as the center frame)
         #### op == original_path; fp == file_path, l == list
-        img_GT_l = []
-        img_LQop_l = [osp.join(self.LQ_root, fp) for fp in self.file_list[index]]
-        img_GTop_l = np.array([osp.join(self.GT_root, fp) for fp in self.gt_list[index]])
+        img_LQop_l = self.lq_list[idx]
+        img_GTop_l = np.array(self.gt_list[idx])
 
         gt_sampled_idx = sorted(random.sample(range(len(img_GTop_l)), 1))
         # print(gt_sampled_idx)
@@ -231,8 +188,8 @@ class AdobeDataset(data.Dataset):
             times.append(torch.tensor([i / 8]))
 
         # read frames
-        img_LQ_l = [cv2.imread(fp) for fp in img_LQop_l]
-        img_GT_l = [cv2.imread(fp) for fp in img_GTop_l]
+        img_LQ_l = [cv2.imread(str(fp)) for fp in img_LQop_l]
+        img_GT_l = [cv2.imread(str(fp)) for fp in img_GTop_l]
 
         # crop so frames are divisible by scale factor (remove remainder)
         sf_l, sf_g = (2 * auto_scale_factor, 2)  # LQ, GT scale factors
@@ -307,4 +264,4 @@ class AdobeDataset(data.Dataset):
         }
 
     def __len__(self):
-        return len(self.file_list)
+        return len(self.lq_list)
