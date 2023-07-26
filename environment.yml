@@ -12,7 +12,7 @@ dependencies:
   - pytorch::torchvision=0.15.2 # vision tools
   - pytorch-cuda=11.8 # MUST be 11.8
   - cuda=11.8 # cuda toolkit & compilers
-  - gxx>=11.8 # UNCOMMENT for Linux: compiler
+  - gxx=11 # UNCOMMENT for Linux, MUST be 11.x: compiler
   - pyyaml # read yaml config files
   - tqdm # loop progress bars
   - pillow # image processing
