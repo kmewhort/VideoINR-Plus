@@ -256,9 +256,6 @@ class AdobeDataset(data.Dataset):
             np.ascontiguousarray(np.transpose(img_LQs, (0, 3, 1, 2)))
         ).float()
 
-        print(img_LQs.shape)
-        print(img_GTs.shape)
-
         return {
             'LQs': img_LQs,
             'GT': img_GTs,
