@@ -14,8 +14,8 @@ datasets:
     interval_list: [1] # UNUSED IN VIDEOINR
     random_reverse: true # UNUSED IN VIDEOINR
     border_mode: false # UNUSED IN VIDEOINR
-    dataroot_GT: video_processing/adobe240/framesGT_800/train # groundtruth
-    dataroot_LQ: video_processing/adobe240/framesLQ_800/train # low quality
+    dataroot_GT: video_processing/adobe240/framesGT_100/train # groundtruth
+    dataroot_LQ: video_processing/adobe240/framesLQ_100/train # low quality
     cache_keys: Vimeo7_train_keys.pkl # UNUSED IN VIDEOINR
 
     N_frames: 7 # no. supervision frames
