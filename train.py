@@ -78,12 +78,7 @@ def main():
         # tensorboard logger
         if opt['use_tb_logger'] and 'debug' not in opt['name']:
             version = float(torch.__version__[0:3])
-            if version >= 1.1:  # PyTorch 1.1
-                from torch.utils.tensorboard import SummaryWriter
-            else:
-                logger.info(
-                    'You are using PyTorch {}. Tensorboard will use [tensorboardX]'.format(version))
-                from tensorboardX import SummaryWriter
+            from torch.utils.tensorboard import SummaryWriter
             tb_logger = SummaryWriter(log_dir='../tb_logger/' + opt['name'])
     else:
         util.setup_logger('base', opt['path']['log'], 'train', level=logging.INFO, screen=True)
@@ -163,7 +158,7 @@ def main():
             #### training
             model.feed_data(train_data)
             model.optimize_parameters(current_step)
-            
+
             #### update learning rate
             model.update_learning_rate(current_step, warmup_iter=opt['train']['warmup_iter'])
 
