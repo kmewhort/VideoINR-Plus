@@ -30,16 +30,16 @@ def create_dataloader(dataset, dataset_opt, opt, sampler):
             batch_size = dataset_opt['batch_size']
             shuffle = True
         if dataset_opt['name'] == 'Adobe_a':
-            return torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,
-                                           num_workers=num_workers, sampler=sampler, drop_last=True,
-                                           pin_memory=False, collate_fn=collate_function)
+            return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,
+                            num_workers=num_workers, sampler=sampler, drop_last=True,
+                            pin_memory=False, collate_fn=collate_function)
         else:
-            return torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,
-                                           num_workers=num_workers, sampler=sampler, drop_last=True,
-                                           pin_memory=False)
+            return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,
+                            num_workers=num_workers, sampler=sampler, drop_last=True,
+                            pin_memory=False)
     else:
-        return torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, num_workers=1,
-                                           pin_memory=True)
+        return DataLoader(dataset, batch_size=1, shuffle=False, num_workers=1,
+                        pin_memory=True)
 
 
 def create_dataset(dataset_opt):
@@ -72,7 +72,7 @@ def collate_function(data):
     d_scale = random.uniform(2, 4) # randomly select down-sampling scale in [2, 4]
     LQ_size = 64 # fixed resolution for LQ images
     GT_size = int(np.floor(LQ_size * d_scale))
-    
+
     ### Image Cropping ###
     x = random.randint(0, max(0, 720 - GT_size))
     y = random.randint(0, max(0, 1280 - GT_size))
@@ -98,5 +98,5 @@ def collate_function(data):
     img_LQs = torch.from_numpy(np.ascontiguousarray(np.transpose(img_LQs, (1, 0, 4, 2, 3)))).float()
 
     time_t = [torch.cat([time_[2][i][None] for time_ in data], dim=0) for i in range(len(data[0][2]))]
-    
-    return {'LQs': img_LQs, 'GT': img_GTs, 'scale': [[img_GTs.shape[-2]], [img_GTs.shape[-1]]], 'time': time_t}     
+
+    return {'LQs': img_LQs, 'GT': img_GTs, 'scale': [[img_GTs.shape[-2]], [img_GTs.shape[-1]]], 'time': time_t}

@@ -20,13 +20,14 @@ from models import create_model
 from pdb import set_trace as bp
 
 
-def init_dist(backend='nccl', **kwargs):
+def init_dist(backend='nccl', rank=None, **kwargs):
     ''' initialization for distributed training'''
     # if mp.get_start_method(allow_none=True) is None:
     if mp.get_start_method(allow_none=True) != 'spawn':
         mp.set_start_method('spawn')
-    rank = int(os.environ['RANK'])
     num_gpus = torch.cuda.device_count()
+    if rank is None:
+        rank = int(os.environ['LOCAL_RANK'])
     torch.cuda.set_device(rank % num_gpus)
     dist.init_process_group(backend=backend, **kwargs)
 
@@ -37,7 +38,7 @@ def main():
     parser.add_argument('-opt', type=str, default='options/train/train_zsm.yml', help='Path to option YAML file.')
     parser.add_argument('--launcher', choices=['none', 'pytorch'], default='none',
                         help='job launcher')
-    parser.add_argument('--local_rank', type=int, default=0)
+    parser.add_argument('--local_rank', type=int)
     args = parser.parse_args()
     opt = option.parse(args.opt, is_train=True)
 
@@ -48,7 +49,7 @@ def main():
         print('Disabled distributed training.')
     else:
         opt['dist'] = True
-        init_dist()
+        init_dist(rank=args.local_rank)
         world_size = torch.distributed.get_world_size()
         rank = torch.distributed.get_rank()
 
