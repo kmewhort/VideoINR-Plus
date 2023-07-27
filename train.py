@@ -38,7 +38,7 @@ def main():
     parser.add_argument('-opt', type=str, default='options/train/train_zsm.yml', help='Path to option YAML file.')
     parser.add_argument('--launcher', choices=['none', 'pytorch'], default='none',
                         help='job launcher')
-    parser.add_argument('--local_rank', type=int)
+    parser.add_argument('--local-rank', type=int)
     args = parser.parse_args()
     opt = option.parse(args.opt, is_train=True)
 
