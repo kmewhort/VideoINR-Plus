@@ -194,7 +194,7 @@ class AdobeDataset(data.Dataset):
         # crop so frames are divisible by scale factor (remove remainder)
         sf_l, sf_g = (2 * auto_scale_factor, 2)  # LQ, GT scale factors
         height_l, width_l = sf_l * (np.array(img_LQ_l[0].shape) // sf_l)[0:2]
-        height_g, width_g = sf_g * (np.array(img_LQ_l[0].shape) // sf_g)[0:2]
+        height_g, width_g = sf_g * (np.array(img_GT_l[0].shape) // sf_g)[0:2]
         if len(img_LQ_l[0].shape) == 3:
             img_LQ_l = [img_[0:height_l, 0:width_l, :] for img_ in img_LQ_l]
             img_GT_l = [img_[0:height_g, 0:width_g, :] for img_ in img_GT_l]
@@ -255,6 +255,10 @@ class AdobeDataset(data.Dataset):
         img_LQs = torch.from_numpy(
             np.ascontiguousarray(np.transpose(img_LQs, (0, 3, 1, 2)))
         ).float()
+
+        print(img_LQs.shape)
+        print(img_GTs.shape)
+
         return {
             'LQs': img_LQs,
             'GT': img_GTs,
