@@ -8,6 +8,13 @@ function Degrade_Frames(frame_indir, ...
 % DEGRADE_FRAMES Downsample, add noise and dim frames.
 %   Original code: Dr Pui Anantrasirichai, 2023 (University of Bristol)
 %   Adapted: Felix Dubicki-Piper, 2023 (UG, University of Bristol)
+%
+%   Recommended Default Input Values:
+%       gammaGain       = 1.8   + rand() * 1.5
+%       intensityOffset = 0.035 + rand() * 0.03;
+%       intensityGain   = 0.3   + rand() * 0.1;
+%       saturationGain  = 0.6   + rand() * 0.2;
+
 
 mkdir(frame_outdir);
 imgList = {dir(fullfile(frame_indir, '*.png')).name};
