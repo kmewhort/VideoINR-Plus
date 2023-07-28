@@ -8,4 +8,4 @@ rate=$2
 video_outdir=$3
 
 # convert to video
-ffmpeg -framerate "$rate" -i "$frame_indir" -pix_fmt yuv420p "$video_outdir"
+ffmpeg -framerate "$rate" -i "$frame_indir" -c:v libx264 -pix_fmt yuv420p "$video_outdir"
