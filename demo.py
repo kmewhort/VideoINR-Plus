@@ -15,8 +15,8 @@ from data.util import imresize_np
 parser = argparse.ArgumentParser()
 parser.add_argument('--space_scale', type=int, default=4, help="upsampling space scale")
 parser.add_argument('--time_scale', type=int, default=8, help="upsampling time scale")
-parser.add_argument('--downsample', type=bool, default=False, help="whether to downsample input frames by space_scale")
-parser.add_argument('--bicubic', type=bool, default=True, help="whether to output bicubic result")
+parser.add_argument('--downsample', default=False, action=argparse.BooleanOptionalAction, help="whether to downsample input frames by space_scale")
+parser.add_argument('--bicubic', default=False, action=argparse.BooleanOptionalAction, help="whether to output bicubic result")
 parser.add_argument('--data_path', type=str, required=True, help="data path for testing")
 parser.add_argument('--out_path', type=str, default="./demo_output/", help="output path (subdirs are created automatically)")
 parser.add_argument('--model_path', type=str, default="trained_models/VideoINR_Network_G.pth", help="model parameter path")
@@ -48,7 +48,7 @@ if opt.downsample:
 if opt.bicubic:
     path_BC = Path(opt.out_path, "Bicubic")
     os.makedirs(path_BC, exist_ok=True)
-    path_VideoINR = Path(opt.out_path, "VideoINR")
+path_VideoINR = Path(opt.out_path, "VideoINR")
 os.makedirs(path_VideoINR, exist_ok=True)
 
 # correctly sort input videos by number, should work for "001" and "1" formats
@@ -95,7 +95,7 @@ for idx in tqdm(range(len(path_list) - 1)):
     for out_ind in range(len(output)):
         img = output[out_ind][0]
         img = Image.fromarray((img.clamp(0., 1.).detach().cpu().permute(1, 2, 0) * 255).numpy().astype(np.uint8))
-        img.save(path_VideoINR.joinpath("{}.png".format(index)))
+        img.save(path_VideoINR.joinpath(f"{index:04d}.png"))
         index += 1
 
     # bicubic upsample (only interpolates space, not time)
