@@ -17,12 +17,12 @@ dependencies:
   - tqdm # loop progress bars
   - pillow # image processing
   - python-lmdb # database management
-  # - ffmpeg # OPTIONAL: video conversion & processing
-  # - ipython # OPTIONAL: test/debugging
-  # - ipykernel # OPTIONAL: test/debugging
+  - conda-forge::ffmpeg # OPTIONAL: video conversion & processing
+  - ipython # OPTIONAL: test/debugging
+  - ipykernel # OPTIONAL: test/debugging
   - pip:
       - opencv-python # computer vision ai tools
-      # - miss_hit # OPTIONAL: matlab formatter
+      - miss_hit # OPTIONAL: matlab formatter
       - ./models/modules/DCNv2 # auto-install local DCNv2 module
 
 # NOTE
