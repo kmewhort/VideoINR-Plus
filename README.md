@@ -140,7 +140,7 @@ is used for training.
    `videoFolder` to where you save the extracted frames and
    `frameFolder` to `DATASET_PATH` in `generate_frames_from_adobe240fps.py`
    and run it. This would automatically split the data into train/test/val set.~~\
-   You can use `adobe2frames.sh`` to generate ground-truth and low-quality datasets.
+   You can use `adobe2frames.sh` to generate ground-truth and low-quality datasets.
    This requires ffmpeg. \
    **Do not** downsample the frame rate for the training input images, this is
    automatically taken care of within the training code.
