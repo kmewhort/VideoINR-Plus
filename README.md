@@ -26,7 +26,7 @@ VideoINR has been updated by
 - Compatibility upgrade to latest python and pytorch versions.
 - Provide full python environment specification,
   along with clearer README instructions.
-- Upgraded DCNv2 for latest pytorch compatibility, and automated.
+- Upgraded DCNv2 for latest pytorch compatibility, and automated installation process.
 - Implement ffmpeg for fast video frame extraction and downsampling.
 - Implement noisy, low-light image generation.
 - Trained VideoINR+ for denoising capability.
